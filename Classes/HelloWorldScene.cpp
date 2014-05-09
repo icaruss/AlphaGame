@@ -35,18 +35,26 @@ bool HelloWorld::init()
     //    you may modify it.
 
     // add a "close" icon to exit the progress. it's an autorelease object
-    auto closeItem = MenuItemImage::create(
-                                           "CloseNormal.png",
-                                           "CloseSelected.png",
-                                           CC_CALLBACK_1(HelloWorld::menuCloseCallback, this));
-    
-	closeItem->setPosition(Point(origin.x + visibleSize.width - closeItem->getContentSize().width/2 ,
-                                origin.y + closeItem->getContentSize().height/2));
 
-    // create menu, it's an autorelease object
-    auto menu = Menu::create(closeItem, NULL);
-    menu->setPosition(Point::ZERO);
-    this->addChild(menu, 1);
+//TODO: Remove	
+ //   auto closeItem = MenuItemImage::create(
+ //                                          "CloseNormal.png",
+ //                                          "CloseSelected.png",
+ //                                          CC_CALLBACK_1(HelloWorld::menuCloseCallback, this));
+ //   
+	//closeItem->setPosition(Point(origin.x + visibleSize.width - closeItem->getContentSize().width/2 ,
+ //                               origin.y + closeItem->getContentSize().height/2));
+
+ //   // create menu, it's an autorelease object
+ //   auto menu = Menu::create(closeItem, NULL);
+ //   menu->setPosition(Point::ZERO);
+ //   this->addChild(menu, 1);
+
+	CCSprite* ball = CCSprite::create("CloseNormal.png");
+	ball->setPosition(Point(origin.x + visibleSize.width - ball->getContentSize().width/2 ,
+		origin.y + ball->getContentSize().height/2));
+
+	this->addChild(ball,100);
 
     /////////////////////////////
     // 3. add your codes below...
@@ -64,7 +72,7 @@ bool HelloWorld::init()
     this->addChild(label, 1);
 
     // add "HelloWorld" splash screen"
-    auto sprite = Sprite::create("HelloWorld.png");
+    auto sprite = Sprite::create("Backgrounds\\black-wood-background.jpg");
 
     // position the sprite on the center of the screen
     sprite->setPosition(Point(visibleSize.width/2 + origin.x, visibleSize.height/2 + origin.y));
