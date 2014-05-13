@@ -26,9 +26,21 @@ bool HelloWorld::init()
     {
         return false;
     }
-    
+	
+	auto listener = EventListenerTouchOneByOne::create();
+
+	listener->onTouchBegan = CC_CALLBACK_2(HelloWorld::onTouchBegan, this);
+	listener->onTouchEnded = CC_CALLBACK_2(HelloWorld::onTouchEnded, this);
+	listener->onTouchMoved = CC_CALLBACK_2(HelloWorld::onTouchMoved, this);
+	listener->onTouchCancelled = CC_CALLBACK_2(HelloWorld::onTouchCancelled, this);
+	_eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
+
+
     Size visibleSize = Director::getInstance()->getVisibleSize();
     Point origin = Director::getInstance()->getVisibleOrigin();
+
+	points = new vector<Point*>();
+	frameDelta = new Point(visibleSize.width * 0.1 , visibleSize.height * 0.1);
 
     /////////////////////////////
     // 2. add a menu item with "X" image, which is clicked to quit the program
@@ -69,7 +81,7 @@ bool HelloWorld::init()
                             origin.y + visibleSize.height - label->getContentSize().height));
 
     // add the label as a child to this layer
-    this->addChild(label, 1);
+    this->addChild(label, 1, 2);
 
     // add "HelloWorld" splash screen"
     auto sprite = Sprite::create("Backgrounds\\black-wood-background.jpg");
@@ -97,3 +109,31 @@ void HelloWorld::menuCloseCallback(Ref* pSender)
     exit(0);
 #endif
 }
+
+
+// touches
+
+bool HelloWorld::onTouchBegan(Touch *touch, Event *event)
+{
+	
+	LabelTTF *label = (LabelTTF*)this->getChildByTag(2);
+	label->setPosition(touch->getLocation());
+
+	return true;
+}
+
+
+	void HelloWorld::onTouchEnded(Touch *touch, Event *event)
+	{
+		LabelTTF *label = (LabelTTF*)this->getChildByTag(2);
+		label->setPosition(touch->getLocation());
+	}
+	void HelloWorld::onTouchMoved(Touch *touch, Event *event)
+	{
+		LabelTTF *label = (LabelTTF*)this->getChildByTag(2);
+		label->setPosition(touch->getLocation());
+	}
+	void HelloWorld::onTouchCancelled(Touch *touch, Event *event)
+	{
+		onTouchEnded(touch,event);
+	}

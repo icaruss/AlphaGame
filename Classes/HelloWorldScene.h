@@ -1,11 +1,22 @@
 #ifndef __HELLOWORLD_SCENE_H__
 #define __HELLOWORLD_SCENE_H__
 
+
+#include <vector>
 #include "cocos2d.h"
 
-class HelloWorld : public cocos2d::Layer
+using namespace cocos2d;
+using namespace std;
+
+class HelloWorld : public Layer
 {
 public:
+
+	vector<Point*> *points;
+
+	Point *frameDelta;
+
+
     // there's no 'id' in cpp, so we recommend returning the class instance pointer
     static cocos2d::Scene* createScene();
 
@@ -17,6 +28,14 @@ public:
     
     // implement the "static create()" method manually
     CREATE_FUNC(HelloWorld);
+
+
+
+	bool onTouchBegan(Touch *touch, Event *event);
+	void onTouchEnded(Touch *touch, Event *event);
+	void onTouchMoved(Touch *touch, Event *event);
+	void onTouchCancelled(Touch *touch, Event *event);
+
 };
 
 #endif // __HELLOWORLD_SCENE_H__
