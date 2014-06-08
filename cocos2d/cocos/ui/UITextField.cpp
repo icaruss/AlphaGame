@@ -61,14 +61,14 @@ UICCTextField::~UICCTextField()
 {
 }
 
-UICCTextField * UICCTextField::create(const char *placeholder, const char *fontName, float fontSize)
+UICCTextField * UICCTextField::create(const std::string& placeholder, const std::string& fontName, float fontSize)
 {
     UICCTextField *pRet = new UICCTextField();
     
     if(pRet && pRet->initWithPlaceHolder("", fontName, fontSize))
     {
         pRet->autorelease();
-        if (placeholder)
+        if (!placeholder.empty())
         {
             pRet->setPlaceHolder(placeholder);
         }
@@ -121,7 +121,7 @@ bool UICCTextField::onTextFieldDetachWithIME(TextFieldTTF *pSender)
     return false;
 }
 
-void UICCTextField::insertText(const char * text, size_t len)
+void UICCTextField::insertText(const char*  text, size_t len)
 {
     std::string input_text = text;
     
@@ -276,9 +276,9 @@ bool UICCTextField::isPasswordEnabled()
     return _passwordEnabled;
 }
 
-void UICCTextField::setPasswordStyleText(const char* styleText)
+void UICCTextField::setPasswordStyleText(const std::string& styleText)
 {
-    if (strlen(styleText) > 1)
+    if (styleText.length() > 1)
     {
         return;
     }
@@ -290,10 +290,10 @@ void UICCTextField::setPasswordStyleText(const char* styleText)
     _passwordStyleText = styleText;
 }
 
-void UICCTextField::setPasswordText(const char *text)
+void UICCTextField::setPasswordText(const std::string& text)
 {
     std::string tempStr = "";
-    int text_count = _calcCharCount(text);
+    int text_count = _calcCharCount(text.c_str());
     int max = text_count;
     
     if (_maxLengthEnabled)
@@ -364,7 +364,9 @@ _touchHeight(0.0f),
 _useTouchArea(false),
 _textFieldEventListener(nullptr),
 _textFieldEventSelector(nullptr),
-_passwordStyleText("")
+_eventCallback(nullptr),
+_passwordStyleText(""),
+_textFieldRendererAdaptDirty(true)
 {
 }
 
@@ -391,7 +393,6 @@ TextField* TextField::create(const std::string &placeholder, const std::string &
     TextField* widget = new TextField();
     if (widget && widget->init())
     {
-        widget->setTouchEnabled(true);
         widget->setPlaceHolder(placeholder);
         widget->setFontName(fontName);
         widget->setFontSize(fontSize);
@@ -435,11 +436,11 @@ void TextField::setTouchAreaEnabled(bool enable)
     _useTouchArea = enable;
 }
     
-bool TextField::hitTest(const Point &pt)
+bool TextField::hitTest(const Vec2 &pt)
 {
     if (_useTouchArea)
     {
-        Point nsp = convertToNodeSpace(pt);
+        Vec2 nsp = convertToNodeSpace(pt);
         Rect bb = Rect(-_touchWidth * _anchorPoint.x, -_touchHeight * _anchorPoint.y, _touchWidth, _touchHeight);
         if (nsp.x >= bb.origin.x && nsp.x <= bb.origin.x + bb.size.width && nsp.y >= bb.origin.y && nsp.y <= bb.origin.y + bb.size.height)
         {
@@ -514,14 +515,15 @@ void TextField::setText(const std::string& text)
     {
         _textFieldRenderer->setString(content);
     }
-    
-    textfieldRendererScaleChangedWithSize();
+    _textFieldRendererAdaptDirty = true;
+    updateContentSizeWithTextureSize(_textFieldRenderer->getContentSize());
 }
 
 void TextField::setPlaceHolder(const std::string& value)
 {
     _textFieldRenderer->setPlaceHolder(value);
-    textfieldRendererScaleChangedWithSize();
+    _textFieldRendererAdaptDirty = true;
+    updateContentSizeWithTextureSize(_textFieldRenderer->getContentSize());
 }
     
 const std::string& TextField::getPlaceHolder()
@@ -532,7 +534,8 @@ const std::string& TextField::getPlaceHolder()
 void TextField::setFontSize(int size)
 {
     _textFieldRenderer->setSystemFontSize(size);
-    textfieldRendererScaleChangedWithSize();
+    _textFieldRendererAdaptDirty = true;
+    updateContentSizeWithTextureSize(_textFieldRenderer->getContentSize());
 }
     
 int TextField::getFontSize()
@@ -543,7 +546,8 @@ int TextField::getFontSize()
 void TextField::setFontName(const std::string& name)
 {
     _textFieldRenderer->setSystemFontName(name);
-    textfieldRendererScaleChangedWithSize();
+    _textFieldRendererAdaptDirty = true;
+    updateContentSizeWithTextureSize(_textFieldRenderer->getContentSize());
 }
     
 const std::string& TextField::getFontName()
@@ -634,14 +638,16 @@ void TextField::update(float dt)
         insertTextEvent();
         setInsertText(false);
         
-        textfieldRendererScaleChangedWithSize();
+        _textFieldRendererAdaptDirty = true;
+        updateContentSizeWithTextureSize(_textFieldRenderer->getContentSize());
     }
     if (getDeleteBackward())
     {
         deleteBackwardEvent();
         setDeleteBackward(false);
         
-        textfieldRendererScaleChangedWithSize();
+        _textFieldRendererAdaptDirty = true;
+        updateContentSizeWithTextureSize(_textFieldRenderer->getContentSize());
     }
 }
 
@@ -691,6 +697,9 @@ void TextField::attachWithIMEEvent()
     {
         (_textFieldEventListener->*_textFieldEventSelector)(this, TEXTFIELD_EVENT_ATTACH_WITH_IME);
     }
+    if (_eventCallback) {
+        _eventCallback(this, EventType::ATTACH_WITH_IME);
+    }
 }
 
 void TextField::detachWithIMEEvent()
@@ -698,6 +707,9 @@ void TextField::detachWithIMEEvent()
     if (_textFieldEventListener && _textFieldEventSelector)
     {
         (_textFieldEventListener->*_textFieldEventSelector)(this, TEXTFIELD_EVENT_DETACH_WITH_IME);
+    }
+    if (_eventCallback) {
+        _eventCallback(this, EventType::DETACH_WITH_IME);
     }
 }
 
@@ -707,6 +719,9 @@ void TextField::insertTextEvent()
     {
         (_textFieldEventListener->*_textFieldEventSelector)(this, TEXTFIELD_EVENT_INSERT_TEXT);
     }
+    if (_eventCallback) {
+        _eventCallback(this, EventType::INSERT_TEXT);
+    }
 }
 
 void TextField::deleteBackwardEvent()
@@ -715,6 +730,9 @@ void TextField::deleteBackwardEvent()
     {
         (_textFieldEventListener->*_textFieldEventSelector)(this, TEXTFIELD_EVENT_DELETE_BACKWARD);
     }
+    if (_eventCallback) {
+        _eventCallback(this, EventType::DELETE_BACKWARD);
+    }
 }
 
 void TextField::addEventListenerTextField(Ref *target, SEL_TextFieldEvent selecor)
@@ -722,17 +740,25 @@ void TextField::addEventListenerTextField(Ref *target, SEL_TextFieldEvent seleco
     _textFieldEventListener = target;
     _textFieldEventSelector = selecor;
 }
-
-void TextField::setAnchorPoint(const Point &pt)
+    
+void TextField::addEventListener(const ccTextFieldCallback& callback)
 {
-    Widget::setAnchorPoint(pt);
-    _textFieldRenderer->setAnchorPoint(pt);
+    _eventCallback = callback;
 }
 
 void TextField::onSizeChanged()
 {
     Widget::onSizeChanged();
-    textfieldRendererScaleChangedWithSize();
+    _textFieldRendererAdaptDirty = true;
+}
+    
+void TextField::adaptRenderers()
+{
+    if (_textFieldRendererAdaptDirty)
+    {
+        textfieldRendererScaleChangedWithSize();
+        _textFieldRendererAdaptDirty = false;
+    }
 }
 
 void TextField::textfieldRendererScaleChangedWithSize()
@@ -741,7 +767,6 @@ void TextField::textfieldRendererScaleChangedWithSize()
     {
         _textFieldRenderer->setDimensions(0,0);
         _textFieldRenderer->setScale(1.0f);
-        _size = getContentSize();
     }
     else
     {
@@ -757,9 +782,10 @@ void TextField::textfieldRendererScaleChangedWithSize()
         _textFieldRenderer->setScaleX(scaleX);
         _textFieldRenderer->setScaleY(scaleY);
     }
+    _textFieldRenderer->setPosition(_contentSize.width / 2.0f, _contentSize.height / 2.0f);
 }
 
-const Size& TextField::getContentSize() const
+const Size& TextField::getVirtualRendererSize() const
 {
     return _textFieldRenderer->getContentSize();
 }
@@ -816,6 +842,9 @@ void TextField::copySpecialProperties(Widget *widget)
         setDetachWithIME(textField->getDetachWithIME());
         setInsertText(textField->getInsertText());
         setDeleteBackward(textField->getDeleteBackward());
+        _eventCallback = textField->_eventCallback;
+        _textFieldEventListener = textField->_textFieldEventListener;
+        _textFieldEventSelector = textField->_textFieldEventSelector;
     }
 }
     

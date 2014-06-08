@@ -66,7 +66,7 @@ public:
     static Button* create(const std::string& normalImage,
                           const std::string& selectedImage = "",
                           const std::string& disableImage = "",
-                          TextureResType texType = UI_TEX_TYPE_LOCAL);
+                          TextureResType texType = TextureResType::LOCAL);
     
 
     /**
@@ -83,7 +83,7 @@ public:
     void loadTextures(const std::string& normal,
                       const std::string& selected,
                       const std::string& disabled = "",
-                      TextureResType texType = UI_TEX_TYPE_LOCAL);
+                      TextureResType texType = TextureResType::LOCAL);
 
     /**
      * Load normal state texture for button.
@@ -92,7 +92,7 @@ public:
      *
      * @param texType    @see UI_TEX_TYPE_LOCAL
      */
-    void loadTextureNormal(const std::string& normal, TextureResType texType = UI_TEX_TYPE_LOCAL);
+    void loadTextureNormal(const std::string& normal, TextureResType texType = TextureResType::LOCAL);
 
     /**
      * Load selected state texture for button.
@@ -101,7 +101,7 @@ public:
      *
      * @param texType    @see UI_TEX_TYPE_LOCAL
      */
-    void loadTexturePressed(const std::string& selected, TextureResType texType = UI_TEX_TYPE_LOCAL);
+    void loadTexturePressed(const std::string& selected, TextureResType texType = TextureResType::LOCAL);
 
     /**
      * Load dark state texture for button.
@@ -110,7 +110,7 @@ public:
      *
      * @param texType    @see UI_TEX_TYPE_LOCAL
      */
-    void loadTextureDisabled(const std::string& disabled, TextureResType texType = UI_TEX_TYPE_LOCAL);
+    void loadTextureDisabled(const std::string& disabled, TextureResType texType = TextureResType::LOCAL);
 
     /**
      * Sets capinsets for button, if button is using scale9 renderer.
@@ -146,9 +146,6 @@ public:
 
     const Rect& getCapInsetsDisabledRenderer();
 
-    //override "setAnchorPoint" of widget.
-    virtual void setAnchorPoint(const Point &pt) override;
-
     /**
      * Sets if button is using scale9 renderer.
      *
@@ -168,8 +165,8 @@ public:
     //override "ignoreContentAdaptWithSize" method of widget.
     virtual void ignoreContentAdaptWithSize(bool ignore) override;
 
-    //override "getContentSize" method of widget.
-    virtual const Size& getContentSize() const override;
+    //override "getVirtualRendererSize" method of widget.
+    virtual const Size& getVirtualRendererSize() const override;
 
     //override "getVirtualRenderer" method of widget.
     virtual Node* getVirtualRenderer() override;
@@ -193,7 +190,7 @@ CC_CONSTRUCTOR_ACCESS:
     virtual bool init(const std::string& normalImage,
                       const std::string& selectedImage = "",
                       const std::string& disableImage = "",
-                      TextureResType texType = UI_TEX_TYPE_LOCAL);
+                      TextureResType texType = TextureResType::LOCAL);
 
 
 protected:
@@ -212,6 +209,8 @@ protected:
     void disabledTextureScaleChangedWithSize();
     virtual Widget* createCloneInstance() override;
     virtual void copySpecialProperties(Widget* model) override;
+    virtual void adaptRenderers() override;
+    void updateTitleLocation();
 protected:
     Node* _buttonNormalRenderer;
     Node* _buttonClickedRenderer;
@@ -240,6 +239,9 @@ protected:
     bool _normalTextureLoaded;
     bool _pressedTextureLoaded;
     bool _disabledTextureLoaded;
+    bool _normalTextureAdaptDirty;
+    bool _pressedTextureAdaptDirty;
+    bool _disabledTextureAdaptDirty;
 };
 
 }

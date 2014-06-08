@@ -3,6 +3,7 @@
 	<name>GameAlpha</name>
 	<comment></comment>
 	<projects>
+		<project>libcocos2dx</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
@@ -44,7 +45,7 @@
 		<link>
 			<name>Classes</name>
 			<type>2</type>
-			<locationURI>COCOS2DX/projects/GameAlpha/Classes</locationURI>
+			<location>B:/Development Software/AlphaGame/Classes</location>
 		</link>
 		<link>
 			<name>cocos2dx</name>

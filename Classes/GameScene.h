@@ -40,8 +40,11 @@ public:
 
 private:
 
-	bool isTouchOnFrame(Point point);
-
+	bool		isTouchOnFrame(Point point);
+	void		CreateObjects(int staticObjects, int movingObjects);
+	void		moveObjectsRandomly(int movingObjects);
+	void        setObjectToMove(Sprite *sprite, int angle);
+	Point		getNewPositionToMoveToByAngle(int angle);
 };
 
 #endif // __HELLOWORLD_SCENE_H__
